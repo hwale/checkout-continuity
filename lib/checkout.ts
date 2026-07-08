@@ -135,6 +135,9 @@ export function getSession(
   if (opts.resume && opts.surface) {
     const crossSurface = opts.surface !== session.lastResumedSurface;
     session.lastResumedSurface = opts.surface;
+    // A cross-surface handoff is a visible state change: bump version so
+    // other surfaces pick it up on their next poll.
+    if (crossSurface) session.version++;
     track("session_resumed", {
       sessionId,
       surface: opts.surface,
