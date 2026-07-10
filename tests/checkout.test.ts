@@ -123,6 +123,16 @@ describe("hold expiration", () => {
     expect(result.view.session.status).toBe("expired");
   });
 
+  it("releases lapsed holds even when the expired sessions are never read again", () => {
+    createSession({ listingId: LISTING, surface: "web" }); // holds 2 of 4
+    createSession({ listingId: LISTING, surface: "web" }); // holds 4 of 4
+    vi.advanceTimersByTime(HOLD_TTL_MS + 1);
+    // Nobody re-reads the abandoned sessions; a new fan must still get seats.
+    const view = createSession({ listingId: LISTING, surface: "web" });
+    expect(view.session.status).toBe("active");
+    expect(listing().heldQty).toBe(2);
+  });
+
   it("rejects completion of an expired session with 410", async () => {
     const { session } = createSession({ listingId: LISTING, surface: "web" });
     vi.advanceTimersByTime(HOLD_TTL_MS + 1);

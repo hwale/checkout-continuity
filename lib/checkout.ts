@@ -64,6 +64,19 @@ function expireIfNeeded(session: CheckoutSession, now = Date.now()): void {
   track("session_expired", { sessionId: session.id });
 }
 
+/**
+ * A hold is a lease, and a lease nobody looks at again must still lapse.
+ * Lazy per-session expiry only fires when that session is read, so abandoned
+ * sessions would leak their holds forever. Sweeping at the points that depend
+ * on availability (listing views, new holds) keeps counts truthful without
+ * timers; the production equivalent is a TTL index or a background sweeper.
+ */
+function releaseLapsedHolds(listingId?: string, now = Date.now()): void {
+  for (const session of db.sessions.values()) {
+    if (!listingId || session.listingId === listingId) expireIfNeeded(session, now);
+  }
+}
+
 export function buildView(session: CheckoutSession): SessionView {
   const listing = getListingOrThrow(session.listingId);
   const now = Date.now();
@@ -88,6 +101,7 @@ export function buildView(session: CheckoutSession): SessionView {
 }
 
 export function listListings(): Listing[] {
+  releaseLapsedHolds();
   return [...db.listings.values()];
 }
 
@@ -98,6 +112,7 @@ export function createSession(params: {
 }): SessionView {
   const { listingId, quantity = 2, surface } = params;
   const listing = getListingOrThrow(listingId);
+  releaseLapsedHolds(listingId);
   if (!Number.isInteger(quantity) || quantity < 1) {
     throw new CheckoutError("INVALID", "Quantity must be a positive integer", 400);
   }
