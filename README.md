@@ -12,7 +12,7 @@ npm run dev        # http://localhost:3000
 ```
 
 ```bash
-npm test                    # 14 state-transition tests (vitest)
+npm test                    # 15 state-transition tests (vitest)
 node scripts/scenario.mjs   # scripted end-to-end walkthrough over HTTP (dev server must be running)
 ```
 
@@ -119,4 +119,4 @@ Per the assignment's note on AI tools: this project was built with Claude Code a
 
 - **Where:** scaffolding, the domain layer, route handlers, UI components, tests, and this README were AI-drafted from my design direction; the state model semantics (what is a status vs. a derived flag, lock ordering, expiry rules) were decided in design discussion before code was written.
 - **Why:** speed on boilerplate and breadth, so the limited time went to the state model, failure semantics, and verification instead of plumbing.
-- **How outputs were validated and challenged:** every claim the code makes is backed by a mechanical check I ran: the 14-test vitest suite (including a two-device completion race asserting exactly one order, and mid-payment expiry protection), the 10-step HTTP scenario script against the live server, and a curl of the checkout page proving the pre-hydration HTML contains the full checkout context. Self-review passes between stages caught real issues that were fixed before committing, including a cross-surface resume that mutated state without bumping the session version (so other surfaces would never have seen the handoff) and a countdown that originally trusted the client clock. Framework choices were verified against current releases rather than taken from the model's memory.
+- **How outputs were validated and challenged:** every claim the code makes is backed by a mechanical check I ran: the 15-test vitest suite (including a two-device completion race asserting exactly one order, mid-payment expiry protection, and malformed-input rejection), the 10-step HTTP scenario script against the live server, and a curl of the checkout page proving the pre-hydration HTML contains the full checkout context. Self-review passes between stages caught real issues that were fixed before committing, including a cross-surface resume that mutated state without bumping the session version (so other surfaces would never have seen the handoff) and a countdown that originally trusted the client clock. Framework choices were verified against current releases rather than taken from the model's memory.
