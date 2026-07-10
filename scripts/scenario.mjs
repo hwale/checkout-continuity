@@ -29,8 +29,33 @@ async function api(method, path, body) {
   return { status: res.status, json: await res.json() };
 }
 
+/** A step the rest of the script depends on: stop with a clear message rather than a TypeError. */
+function mustSucceed(label, result) {
+  if (result.json.error) {
+    console.error(`ABORT ${label}: ${result.json.error.code} — ${result.json.error.message}`);
+    process.exit(1);
+  }
+  return result;
+}
+
+// --- 0. connectivity check, then reset demo state so runs are repeatable ---
+try {
+  await fetch(BASE);
+} catch {
+  console.error(
+    `Cannot reach ${BASE}. Is the dev server running?\n` +
+      `Note: if port 3000 was busy, "npm run dev" starts on another port — pass it explicitly:\n` +
+      `  node scripts/scenario.mjs http://localhost:3001`,
+  );
+  process.exit(1);
+}
+await api("POST", "/api/dev/simulate", { action: "reset" });
+
 // --- 1. create on web ---
-const created = await api("POST", "/api/sessions", { listingId: "lst_concert", surface: "web" });
+const created = mustSucceed(
+  "create session",
+  await api("POST", "/api/sessions", { listingId: "lst_concert", surface: "web" }),
+);
 check("create session on web -> 201 active", created.status === 201 && created.json.session.status === "active");
 const id = created.json.session.id;
 
@@ -69,7 +94,10 @@ check(
 );
 
 // --- 6. expiry path ---
-const second = await api("POST", "/api/sessions", { listingId: "lst_concert", surface: "web" });
+const second = mustSucceed(
+  "create second session",
+  await api("POST", "/api/sessions", { listingId: "lst_concert", surface: "web" }),
+);
 const sid = second.json.session.id;
 await api("POST", "/api/dev/simulate", { action: "expire_session", sessionId: sid });
 const expired = await api("GET", `/api/sessions/${sid}?surface=web`);
@@ -78,7 +106,10 @@ const tooLate = await api("POST", `/api/sessions/${sid}/complete`, { surface: "w
 check("completing an expired session -> 410", tooLate.status === 410 && tooLate.json.error.code === "SESSION_EXPIRED");
 
 // --- 7. two devices race the same session ---
-const third = await api("POST", "/api/sessions", { listingId: "lst_warriors", surface: "web" });
+const third = mustSucceed(
+  "create third session",
+  await api("POST", "/api/sessions", { listingId: "lst_warriors", surface: "web" }),
+);
 const rid = third.json.session.id;
 const [a, b] = await Promise.all([
   api("POST", `/api/sessions/${rid}/complete`, { surface: "web", simulateOutcome: "slow_success" }),

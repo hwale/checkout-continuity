@@ -1,4 +1,5 @@
 import { simulate } from "@/lib/checkout";
+import { resetDb } from "@/lib/store";
 import { json, toErrorResponse } from "@/lib/api";
 
 /**
@@ -20,6 +21,11 @@ export async function POST(req: Request) {
       }
       case "expire_session":
         return json({ ok: true, view: simulate.expireNow(String(body.sessionId ?? "")) });
+      case "reset":
+        // Restore seeded listings and drop all sessions, so demo runs and the
+        // scenario script are repeatable against a long-lived dev server.
+        resetDb();
+        return json({ ok: true });
       default:
         return json({ error: { code: "INVALID", message: "Unknown action" } }, 400);
     }
