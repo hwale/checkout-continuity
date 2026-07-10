@@ -23,3 +23,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/* Chromium on Windows doesn't reliably apply color-scheme to the <select>
+   popup list; style the options explicitly so they're legible. */
+option {
+  background-color: #121826;
+  color: var(--foreground);
+}
