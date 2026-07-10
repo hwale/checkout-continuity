@@ -285,7 +285,13 @@ export default function CheckoutClient({
           Continuity & demo controls
         </p>
         <p className="mt-2">
-          <Link href={otherSurfaceHref} className="text-accent underline underline-offset-2">
+          {/* New window on purpose: the demo is two surfaces side by side. */}
+          <Link
+            href={otherSurfaceHref}
+            target="_blank"
+            rel="noopener"
+            className="text-accent underline underline-offset-2"
+          >
             {surface === "mobile"
               ? "Open this session on desktop web →"
               : "Resume this session on mobile (deep link) →"}
