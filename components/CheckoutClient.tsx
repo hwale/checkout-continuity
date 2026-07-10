@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import type { PaymentOutcome, SessionView, Surface } from "@/lib/types";
 import { formatCents, formatMs } from "@/lib/format";
 
@@ -285,17 +284,28 @@ export default function CheckoutClient({
           Continuity & demo controls
         </p>
         <p className="mt-2">
-          {/* New window on purpose: the demo is two surfaces side by side. */}
-          <Link
+          {/* The demo is two surfaces side by side: the mobile sim opens in a
+              phone-sized window. If a popup blocker interferes, the anchor's
+              target="_blank" fallback still opens a tab. */}
+          <a
             href={otherSurfaceHref}
             target="_blank"
             rel="noopener"
+            onClick={(e) => {
+              const features =
+                surface === "mobile"
+                  ? "popup,width=1100,height=800"
+                  : "popup,width=430,height=900";
+              if (window.open(otherSurfaceHref, "gt_other_surface", features)) {
+                e.preventDefault();
+              }
+            }}
             className="text-accent underline underline-offset-2"
           >
             {surface === "mobile"
               ? "Open this session on desktop web →"
               : "Resume this session on mobile (deep link) →"}
-          </Link>
+          </a>
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-1">

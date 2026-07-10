@@ -19,7 +19,7 @@ node scripts/scenario.mjs   # scripted end-to-end walkthrough over HTTP (dev ser
 ### Demo walkthrough (2 minutes)
 
 1. On the home page, hit **Buy now**. That creates a checkout session and places a 5-minute inventory hold.
-2. On the checkout page, click **Resume this session on mobile (deep link)**. Put the two windows side by side; they are two surfaces sharing one backend session, each polling every 3 seconds.
+2. On the checkout page, click **Resume this session on mobile (deep link)**. It opens a phone-sized window; put it next to the desktop one. They are two surfaces sharing one backend session, each polling every 3 seconds.
 3. In either window, use the demo controls: **price +$25** shows the price-change flow (the other surface picks it up within a poll, and Pay is blocked until the new price is explicitly accepted). **force expire** shows the expiry and restart flow.
 4. Set payment to **slow success (4s)** and click Pay in one window, then immediately click Pay in the other. One completes; the other is told a payment is already in progress, and then converges on the same completed order. There is never a second charge.
 
