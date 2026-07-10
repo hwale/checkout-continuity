@@ -5,6 +5,9 @@
   --background: #080c15;
   --foreground: #e7ecf4;
   --accent: #21d07a;
+  /* Native controls (select popups, scrollbars) must render dark too,
+     or the OS paints light-on-white option lists. */
+  color-scheme: dark;
 }
 
 @theme inline {
