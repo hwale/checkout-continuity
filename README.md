@@ -6,6 +6,8 @@ Built with Next.js 16 (App Router, React 19.2), TypeScript, and an in-memory sto
 
 ## Run it
 
+Requires Node 20.9+ (any recent LTS).
+
 ```bash
 npm install
 npm run dev        # http://localhost:3000
