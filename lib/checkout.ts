@@ -98,7 +98,9 @@ export function createSession(params: {
 }): SessionView {
   const { listingId, quantity = 2, surface } = params;
   const listing = getListingOrThrow(listingId);
-  if (quantity < 1) throw new CheckoutError("INVALID", "Quantity must be at least 1", 400);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new CheckoutError("INVALID", "Quantity must be a positive integer", 400);
+  }
   if (availableQty(listing) < quantity) {
     throw new CheckoutError("SOLD_OUT", "Not enough tickets available", 409);
   }
@@ -267,6 +269,9 @@ export async function completeSession(
 /** Demo-only levers that stand in for the outside world changing. */
 export const simulate = {
   changePrice(listingId: string, deltaCents: number): Listing {
+    if (!Number.isFinite(deltaCents)) {
+      throw new CheckoutError("INVALID", "deltaCents must be a number", 400);
+    }
     const listing = getListingOrThrow(listingId);
     listing.currentPriceCents = Math.max(100, listing.currentPriceCents + deltaCents);
     track("listing_price_changed", { listingId, toCents: listing.currentPriceCents });

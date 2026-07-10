@@ -55,6 +55,16 @@ describe("creating a session", () => {
     expect(view.msRemaining).toBe(HOLD_TTL_MS);
   });
 
+  it("rejects malformed quantities before they can corrupt inventory", () => {
+    // NaN passes a naive `quantity < 1` check (NaN comparisons are false).
+    for (const quantity of [NaN, 1.5, 0, -2]) {
+      expect(() => createSession({ listingId: LISTING, quantity, surface: "web" })).toThrowError(
+        expect.objectContaining({ code: "INVALID" }),
+      );
+    }
+    expect(listing().heldQty).toBe(0);
+  });
+
   it("rejects when not enough inventory is available", () => {
     createSession({ listingId: LISTING, surface: "web" }); // holds 2 of 4
     createSession({ listingId: LISTING, surface: "web" }); // holds 2 of 4
