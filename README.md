@@ -50,7 +50,7 @@ Other properties of the model:
 
 - **Expiry is a stored deadline, evaluated lazily on every read.** No timers. Every surface converges on the same answer whenever it asks, it survives restarts conceptually, and it is testable with fake clocks. A session that is mid-payment cannot expire; if the hold lapsed during a declined payment, expiry applies immediately after.
 - **Inventory is a hold.** Creating a session moves quantity from available to held; completion converts held to sold; expiry releases it. A second fan genuinely sees SOLD_OUT while someone else holds the last seats.
-- **Every mutation bumps `version`.** Clients re-render only when the version changes, and a cross-surface resume bumps it too, so the desktop page visibly learns "this session was just opened on mobile."
+- **Every session mutation bumps `version`.** Clients re-render from each poll response, so changes propagate within a poll interval; `version` is the session's mutation counter, which the tests and scenario assert on, and the natural seam for conditional writes or ETag-style polling later. A cross-surface resume bumps it too, so a handoff is a first-class, observable mutation.
 
 ## What lives where
 
@@ -74,7 +74,7 @@ All session responses are `Cache-Control: no-store`; checkout truth never comes 
 
 ## How web and mobile resume the same session
 
-The only thing a surface needs is the session id. The web checkout lives at `/checkout/:id`; the simulated mobile app opens `/m/checkout/:id`, standing in for the universal-link target of `gametime://checkout/:id`. Opening either counts as a resume on that surface: the backend records the surface, bumps the version, and the analytics log gains a `session_resumed` event with a `crossSurface` flag. Both surfaces poll the same GET every 3 seconds and re-render when the version moves, so a change made anywhere (price acceptance, payment, expiry) is visible everywhere within a poll. Returning to a backgrounded tab triggers an immediate resume poll, the web analog of an app coming to the foreground.
+The only thing a surface needs is the session id. The web checkout lives at `/checkout/:id`; the simulated mobile app opens `/m/checkout/:id`, standing in for the universal-link target of `gametime://checkout/:id`. Opening either counts as a resume on that surface: the backend records the surface, bumps the version, and the analytics log gains a `session_resumed` event with a `crossSurface` flag. Both surfaces poll the same GET every 3 seconds and re-render from each response, so a change made anywhere (price acceptance, payment, expiry, a listing repricing) is visible everywhere within a poll. Returning to a backgrounded tab triggers an immediate resume poll, the web analog of an app coming to the foreground.
 
 ## How duplicate orders are prevented
 
